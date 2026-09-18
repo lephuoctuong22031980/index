@@ -1,0 +1,1491 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LUCKY WHEELS - Đua Vịt Gọi Tên Học Sinh</title>
+  <meta name="description" content="Ứng dụng gọi tên học sinh ngẫu nhiên theo phong cách đua vịt sinh động, kịch tính dành cho giáo viên và lớp học." />
+  <meta property="og:title" content="LUCKY WHEELS - Đua Vịt Gọi Tên Học Sinh" />
+  <meta property="og:description" content="Ứng dụng gọi tên học sinh ngẫu nhiên theo phong cách đua vịt sinh động, kịch tính dành cho giáo viên và lớp học." />
+
+  <!-- Fonts & CDN Tailwind + Confetti -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'],
+            display: ['"Fredoka"', '"Be Vietnam Pro"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+    }
+    .font-display {
+      font-family: 'Fredoka', 'Be Vietnam Pro', sans-serif;
+    }
+
+    /* Water wave animated background */
+    .water-track-bg {
+      background: linear-gradient(180deg, #0284c7 0%, #0369a1 40%, #075985 100%);
+      position: relative;
+    }
+    .water-waves {
+      background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.12) 2px, transparent 2px),
+                        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.08) 2px, transparent 2px);
+      background-size: 36px 36px;
+      animation: waterFlow 6s linear infinite;
+    }
+    @keyframes waterFlow {
+      0% { background-position: 0 0; }
+      100% { background-position: -72px 0; }
+    }
+
+    /* Bobbing duck swim animation */
+    @keyframes duckBob {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      25% { transform: translateY(-3px) rotate(1.5deg); }
+      75% { transform: translateY(2px) rotate(-1.5deg); }
+    }
+    .duck-swimming {
+      animation: duckBob 0.8s ease-in-out infinite;
+    }
+
+    /* Fast swimming wave ripples */
+    @keyframes ripple {
+      0% { opacity: 0.8; transform: scale(0.8); }
+      100% { opacity: 0; transform: scale(1.5); }
+    }
+    .water-ripple {
+      animation: ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    }
+
+    /* Finish line checkered pattern */
+    .checkered-flag {
+      background-image: 
+        linear-gradient(45deg, #000 25%, transparent 25%), 
+        linear-gradient(-45deg, #000 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #000 75%), 
+        linear-gradient(-45deg, transparent 75%, #000 75%);
+      background-size: 14px 14px;
+      background-position: 0 0, 0 7px, 7px -7px, -7px 0px;
+      background-color: #fff;
+    }
+
+    /* Countdown bounce */
+    @keyframes countPop {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.25); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-count-pop {
+      animation: countPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-amber-400 selection:text-slate-950">
+
+  <!-- HEADER -->
+  <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- Logo & App Name -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.5 3a3.5 3.5 0 0 0-3.5 3.5c0 .32.05.63.14.92A6.5 6.5 0 0 0 3 13.5c0 3.59 2.91 6.5 6.5 6.5h8c2.48 0 4.5-2.02 4.5-4.5 0-1.89-1.17-3.5-2.83-4.16.53-.73.83-1.63.83-2.59A4.75 4.75 0 0 0 15.25 4c-.95 0-1.85.3-2.58.83-.09-.5-.17-.83-.17-.83zm4.5 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-display font-black text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 tracking-tight">
+              LUCKY WHEELS
+            </h1>
+            <span class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+              Đua Vịt 🦆
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">
+            Gọi tên học sinh ngẫu nhiên • Giọng đọc Tiếng Việt chuẩn
+          </p>
+        </div>
+      </div>
+
+      <!-- Header Controls -->
+      <div class="flex items-center gap-2">
+        <button id="btn-toggle-sound" type="button" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer flex items-center gap-1.5 text-xs font-semibold" title="Bật/Tắt âm thanh">
+          <span id="sound-icon">🔊</span>
+          <span id="sound-text" class="hidden sm:inline">Âm thanh</span>
+        </button>
+
+        <button id="btn-test-voice" type="button" class="px-3.5 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95" title="Bấm để kiểm tra phát âm">
+          <span>🎙️</span>
+          <span>Thử giọng Tiếng Việt</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 flex flex-col gap-6">
+
+    <!-- TOAST NOTIFICATION BANNER -->
+    <div id="toast-banner" class="hidden p-3.5 px-4 rounded-xl bg-sky-950/90 border border-sky-500/60 text-sky-200 text-sm font-semibold flex items-center justify-between shadow-lg">
+      <div class="flex items-center gap-2">
+        <span id="toast-icon">✨</span>
+        <span id="toast-text">Thông báo</span>
+      </div>
+      <button type="button" onclick="hideToast()" class="text-xs text-sky-400 hover:text-white px-2 py-0.5 rounded cursor-pointer">✕</button>
+    </div>
+
+    <!-- ZERO STUDENTS ALERT -->
+    <div id="empty-alert" class="hidden p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span>⚠️</span>
+        <span id="empty-alert-text">Danh sách học sinh đang trống. Hãy thêm học sinh hoặc dán danh sách ở bên dưới!</span>
+      </div>
+      <button id="btn-restore-samples-banner" type="button" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow cursor-pointer shrink-0">
+        Tải 20 em mẫu
+      </button>
+    </div>
+
+    <!-- 1. MAIN RACE TRACK SECTION -->
+    <section class="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4">
+      
+      <!-- Track Header: Status & Controls -->
+      <div class="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">🏁</span>
+            <h2 class="font-display font-bold text-lg sm:text-xl text-slate-100">
+              Đường Đua Vịt Xanh
+            </h2>
+          </div>
+          <p id="track-status-text" class="text-xs text-slate-400 mt-0.5 font-medium">
+            Sẵn sàng đua • Nhấn Bắt Đầu để khởi động vòng xoay
+          </p>
+        </div>
+
+        <!-- Primary Action Buttons -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button id="btn-quick-pick" type="button" class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-600 to-sky-500 hover:from-cyan-500 hover:to-sky-400 active:scale-95 text-white font-bold text-xs sm:text-sm shadow-md shadow-cyan-900/30 flex items-center gap-2 transition-all cursor-pointer">
+            <span class="text-base">🎲</span>
+            <span>CHỌN NHANH NGAY</span>
+          </button>
+
+          <button id="btn-start-race" type="button" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 active:scale-95 text-slate-950 font-black text-sm sm:text-base shadow-xl shadow-amber-500/25 flex items-center gap-2 transition-all cursor-pointer">
+            <span class="text-lg">🦆</span>
+            <span>BẮT ĐẦU ĐUA VỊT</span>
+          </button>
+
+          <button id="btn-reset-track" type="button" class="px-3.5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer" title="Đặt lại vị trí xuất phát">
+            <span>🔄</span>
+            <span class="hidden sm:inline">Đặt lại</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- IN-TRACK WINNER BANNER (Displays full name prominently on finish) -->
+      <div id="track-winner-banner" class="hidden p-4 rounded-2xl bg-gradient-to-r from-amber-950/90 via-amber-900/80 to-yellow-950/90 border-2 border-amber-400 shadow-2xl flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center text-2xl font-black shadow-lg shadow-amber-400/40 animate-bounce">
+            🏆
+          </div>
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-300">
+              🎉 Chúc Mừng Học Sinh Chiến Thắng!
+            </div>
+            <div id="banner-winner-name" class="font-display font-black text-xl sm:text-2xl text-yellow-100 drop-shadow-md">
+              Họ và Tên Học Sinh
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-banner-speak" type="button" class="px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-400/50 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer">
+            <span>🔊</span>
+            <span>Đọc tên (Giọng Nam)</span>
+          </button>
+          <button id="btn-banner-view-modal" type="button" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black shadow transition cursor-pointer">
+            Xem Vinh Danh ✨
+          </button>
+        </div>
+      </div>
+
+      <!-- THE WATER RACING TRACK -->
+      <div class="relative w-full rounded-2xl overflow-hidden border-2 border-sky-600/60 shadow-inner water-track-bg min-h-[380px] max-h-[560px] flex flex-col">
+        <div class="absolute inset-0 water-waves pointer-events-none opacity-40"></div>
+
+        <!-- Starting Line Marker -->
+        <div class="absolute top-0 bottom-0 left-[68px] sm:left-[90px] w-2 bg-yellow-400/70 z-10 flex flex-col justify-between py-2 text-[9px] font-black text-slate-900 select-none items-center shadow-md">
+          <span>S</span><span>T</span><span>A</span><span>R</span><span>T</span>
+        </div>
+
+        <!-- Distance Markers (25%, 50%, 75%) -->
+        <div class="absolute top-0 bottom-0 left-[30%] w-[1px] border-r border-dashed border-white/20 pointer-events-none z-0"></div>
+        <div class="absolute top-0 bottom-0 left-[55%] w-[1px] border-r border-dashed border-white/20 pointer-events-none z-0"></div>
+        <div class="absolute top-0 bottom-0 left-[80%] w-[1px] border-r border-dashed border-white/20 pointer-events-none z-0"></div>
+
+        <!-- Checkered Finish Line Banner -->
+        <div class="absolute top-0 bottom-0 right-0 w-8 sm:w-12 checkered-flag z-10 border-l-4 border-amber-400 flex flex-col justify-center items-center select-none shadow-xl">
+          <div class="bg-amber-400 text-slate-950 font-black text-[10px] sm:text-xs py-1 px-1 rotate-90 rounded whitespace-nowrap shadow uppercase">
+            ĐÍCH
+          </div>
+        </div>
+
+        <!-- Countdown Big Overlay -->
+        <div id="countdown-overlay" class="hidden absolute inset-0 z-30 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center">
+          <div id="countdown-number" class="font-display font-black text-7xl sm:text-9xl text-amber-400 drop-shadow-[0_10px_25px_rgba(251,191,36,0.6)] animate-count-pop">
+            3
+          </div>
+        </div>
+
+        <!-- Duck Lanes Scrollable Container -->
+        <div id="lanes-container" class="relative z-10 flex-1 overflow-y-auto py-2 divide-y divide-white/10 pr-8 sm:pr-12">
+          <!-- Duck racer lanes injected here by JS -->
+        </div>
+      </div>
+
+      <!-- Track Footer Stats & Quick Settings -->
+      <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 pt-1">
+        <div class="flex items-center gap-3">
+          <span>Vịt đang đua: <strong id="stat-racers-count" class="text-amber-400 font-mono">0</strong> em</span>
+          <span>•</span>
+          <span>Thời gian đua: <strong id="stat-duration" class="text-cyan-300 font-mono">10s</strong></span>
+          <span>•</span>
+          <span>Chế độ: <strong id="stat-elim-mode" class="text-emerald-400">Tự động loại sau khi thắng</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. LOWER SECTION: STUDENT MANAGER & SETTINGS & HISTORY -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- LEFT 2 COLS: STUDENT MANAGER -->
+      <section class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl flex flex-col gap-4">
+        
+        <!-- Header with Stats -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-display font-bold text-slate-100 text-base">
+                Danh Sách Học Sinh
+              </h3>
+              <p class="text-xs text-slate-400">
+                Đang tham gia đua: <strong id="stat-active-count" class="text-amber-400 font-mono">0</strong> / <span id="stat-total-count" class="font-mono">0</span> em
+              </p>
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btn-open-bulk" type="button" class="px-3 py-1.5 rounded-lg bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+              <span>📋</span> Dán danh sách
+            </button>
+
+            <button id="btn-restore-all" type="button" class="hidden px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+              <span>🔄</span> Khôi phục (<span id="restore-count">0</span>)
+            </button>
+
+            <button id="btn-trigger-clear-all" type="button" class="px-3 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer" title="Xóa toàn bộ danh sách">
+              <span>🗑️</span> Xóa hết
+            </button>
+          </div>
+        </div>
+
+        <!-- Inline Confirmation: Clear All Students -->
+        <div id="confirm-clear-box" class="hidden p-4 rounded-xl bg-rose-950/95 border-2 border-rose-500/80 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 text-rose-100 text-xs sm:text-sm">
+            <span class="text-xl">⚠️</span>
+            <span>Bạn có chắc muốn <strong>xóa toàn bộ danh sách học sinh</strong>? Thao tác này sẽ làm sạch danh sách.</span>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            <button type="button" onclick="cancelClearAll()" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition cursor-pointer">
+              Hủy bỏ
+            </button>
+            <button type="button" onclick="confirmClearAll()" class="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 shadow-md shadow-rose-900/50 transition cursor-pointer active:scale-95">
+              Đồng ý xóa hết
+            </button>
+          </div>
+        </div>
+
+        <!-- Inline Confirmation: Reset to Default 20 Samples -->
+        <div id="confirm-reset-box" class="hidden p-4 rounded-xl bg-amber-950/95 border-2 border-amber-500/80 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 text-amber-100 text-xs sm:text-sm">
+            <span class="text-xl">🔄</span>
+            <span>Tải lại danh sách lớp mẫu mặc định gồm <strong>20 em học sinh</strong>?</span>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            <button type="button" onclick="cancelResetDefault()" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition cursor-pointer">
+              Hủy bỏ
+            </button>
+            <button type="button" onclick="confirmResetDefault()" class="px-4 py-1.5 rounded-lg text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 shadow transition cursor-pointer active:scale-95">
+              Đồng ý tải lại
+            </button>
+          </div>
+        </div>
+
+        <!-- Add Single Student Input -->
+        <form id="form-add-student" class="flex gap-2">
+          <input id="input-student-name" type="text" placeholder="Nhập họ tên học sinh (vd: Lê Hoài Nam)..." class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition" />
+          <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow">
+            <span>➕</span> Thêm
+          </button>
+        </form>
+
+        <!-- Search Input -->
+        <div id="search-container" class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">🔍</span>
+          <input id="input-search-student" type="text" placeholder="Tìm kiếm học sinh trong danh sách..." class="w-full bg-slate-950/60 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-300 placeholder-slate-500 focus:outline-none focus:border-sky-500" />
+        </div>
+
+        <!-- Student Items List -->
+        <div id="students-list" class="max-h-72 overflow-y-auto space-y-1.5 pr-1">
+          <!-- Injected by JavaScript -->
+        </div>
+
+        <!-- Footer Utilities -->
+        <div class="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+          <button id="btn-trigger-reset" type="button" class="hover:text-amber-400 transition cursor-pointer underline underline-offset-2 flex items-center gap-1">
+            <span>🔄</span>
+            <span>Tải lại danh sách lớp mẫu (20 em)</span>
+          </button>
+          <span id="footer-count" class="text-slate-500">Tổng cộng: 0 học sinh</span>
+        </div>
+      </section>
+
+      <!-- RIGHT 1 COL: RACE SETTINGS & CALL HISTORY -->
+      <div class="flex flex-col gap-6">
+
+        <!-- Race Settings Panel -->
+        <section class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl flex flex-col gap-4">
+          <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
+            <span class="text-xl">⚙️</span>
+            <h3 class="font-display font-bold text-slate-100 text-base">
+              Cài Đặt Cuộc Đua
+            </h3>
+          </div>
+
+          <!-- Duration Select -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold text-slate-300">Thời gian đua (giây):</label>
+            <div class="grid grid-cols-4 gap-2">
+              <button type="button" onclick="setRaceDuration(5)" class="btn-duration px-2 py-1.5 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-300 cursor-pointer" data-sec="5">5s</button>
+              <button type="button" onclick="setRaceDuration(10)" class="btn-duration px-2 py-1.5 rounded-xl text-xs font-bold border border-amber-400 bg-amber-400/20 text-amber-300 cursor-pointer" data-sec="10">10s</button>
+              <button type="button" onclick="setRaceDuration(15)" class="btn-duration px-2 py-1.5 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-300 cursor-pointer" data-sec="15">15s</button>
+              <button type="button" onclick="setRaceDuration(20)" class="btn-duration px-2 py-1.5 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-300 cursor-pointer" data-sec="20">20s</button>
+            </div>
+          </div>
+
+          <!-- Elimination Mode Toggle -->
+          <div class="flex items-start gap-3 p-3 rounded-2xl bg-slate-950/60 border border-slate-800">
+            <input id="check-elimination-mode" type="checkbox" checked class="w-4 h-4 mt-0.5 rounded text-amber-500 focus:ring-amber-400 bg-slate-900 border-slate-700 cursor-pointer" />
+            <label for="check-elimination-mode" class="text-xs text-slate-300 cursor-pointer select-none">
+              <strong class="text-slate-100 block">Tự động loại sau khi thắng</strong>
+              <span class="text-slate-400 text-[11px]">Học sinh đã được gọi sẽ tạm nghỉ ở các lượt đua tiếp theo để tránh trùng lặp.</span>
+            </label>
+          </div>
+
+          <!-- Sound Effects Toggle -->
+          <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-950/60 border border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🔊</span>
+              <span class="text-xs font-semibold text-slate-300">Hiệu ứng âm thanh còi & nhạc</span>
+            </div>
+            <input id="check-sound-enabled" type="checkbox" checked class="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 bg-slate-900 border-slate-700 cursor-pointer" />
+          </div>
+        </section>
+
+        <!-- Call History Panel -->
+        <section class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl flex flex-col gap-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">📜</span>
+              <h3 class="font-display font-bold text-slate-100 text-base">
+                Lịch Sử Gọi Tên
+              </h3>
+            </div>
+            <button id="btn-clear-history" type="button" class="text-[11px] text-slate-500 hover:text-rose-400 transition cursor-pointer">
+              Xóa lịch sử
+            </button>
+          </div>
+
+          <div id="history-list" class="max-h-48 overflow-y-auto space-y-1.5 text-xs text-slate-300 pr-1">
+            <p class="text-slate-500 text-center py-4 text-xs italic">Chưa có học sinh nào được gọi</p>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: BULK IMPORT FROM EXCEL / WORD / ZALO -->
+  <div id="modal-bulk-import" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-lg p-6 shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-display font-bold text-slate-100 text-lg flex items-center gap-2">
+          <span>📋</span> Dán danh sách học sinh
+        </h3>
+        <button type="button" onclick="closeBulkModal()" class="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer text-base">✕</button>
+      </div>
+
+      <p class="text-xs text-slate-400 leading-relaxed">
+        Dán danh sách học sinh từ Excel, Word, Google Sheets hoặc Zalo. Mỗi học sinh một dòng hoặc cách nhau bởi dấu phẩy. Các số thứ tự đầu dòng (1. 2.) sẽ được tự động làm sạch.
+      </p>
+
+      <textarea id="textarea-bulk-names" rows="8" placeholder="Nguyễn Văn An&#10;Trần Thị Bích Ngọc&#10;Lê Hoàng Dũng&#10;Phạm Thu Hà&#10;..." class="w-full bg-slate-950 border border-slate-700 rounded-2xl p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-400 font-mono"></textarea>
+
+      <div class="flex justify-end gap-2.5">
+        <button type="button" onclick="closeBulkModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer">Hủy bỏ</button>
+        <button type="button" onclick="submitBulkImport()" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs cursor-pointer shadow">Nhập danh sách ngay</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: WINNER CELEBRATION (DISPLAY FULL NAME & SPEAK VIETNAMESE) -->
+  <div id="modal-winner" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+    <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-2 border-amber-400/80 rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl flex flex-col items-center text-center gap-4 relative overflow-hidden">
+      
+      <!-- Ambient light effect -->
+      <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Close button -->
+      <button type="button" onclick="closeWinnerModal()" class="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-white bg-slate-800/80 cursor-pointer text-sm">✕</button>
+
+      <!-- Trophy Icon & Badge -->
+      <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-500 to-yellow-300 text-slate-950 flex items-center justify-center text-4xl shadow-xl shadow-amber-400/30 animate-bounce">
+        🏆
+      </div>
+
+      <div class="space-y-1">
+        <span class="text-xs font-bold uppercase tracking-widest text-amber-400 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30">
+          ✨ HỌC SINH ĐƯỢC CHỌN ✨
+        </span>
+        <h3 class="text-xs text-slate-400 mt-2">Xin chúc mừng</h3>
+      </div>
+
+      <!-- FULL NAME DISPLAY (HIGH CONTRAST & PROMINENT) -->
+      <div class="w-full py-4 px-3 rounded-2xl bg-slate-950/90 border-2 border-amber-400/60 shadow-inner">
+        <div id="winner-full-name" class="font-display font-black text-2xl sm:text-3xl text-yellow-300 drop-shadow-[0_2px_12px_rgba(253,224,71,0.5)]">
+          Nguyễn Văn An
+        </div>
+        <div id="winner-duck-label" class="text-xs text-cyan-300 mt-1 font-medium">
+          Vịt Vàng Vô Địch 🦆
+        </div>
+      </div>
+
+      <!-- VIETNAMESE SPEECH BUTTON -->
+      <div class="w-full flex flex-col items-center gap-2">
+        <button id="btn-winner-speak-again" type="button" onclick="speakCurrentWinner()" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 active:scale-95 text-slate-950 font-black text-sm shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 transition cursor-pointer">
+          <span class="text-base">🔊</span>
+          <span id="btn-winner-speak-text">BẤM ĐỂ NGHE ĐỌC TÊN (GIỌNG TIẾNG VIỆT)</span>
+        </button>
+        <span class="text-[11px] text-cyan-200/90 font-medium">
+          🎙️ Phát âm Tiếng Việt chuẩn theo giọng nam hào sảng
+        </span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="w-full grid grid-cols-2 gap-3 pt-2">
+        <button id="btn-winner-eliminate" type="button" onclick="eliminateCurrentWinner()" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/30 text-xs font-bold transition cursor-pointer">
+          🚫 Loại lượt sau
+        </button>
+        <button type="button" onclick="startNewRaceFromModal()" class="py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black shadow transition cursor-pointer">
+          🦆 Đua ván mới
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    /* =========================================================
+       1. CONSTANTS & SAMPLE STUDENTS
+       ========================================================= */
+    const STORAGE_KEY_STUDENTS = 'lucky_wheels_students_v2';
+    const STORAGE_KEY_CONFIG = 'lucky_wheels_config_v2';
+    const STORAGE_KEY_HISTORY = 'lucky_wheels_history_v2';
+
+    const SAMPLE_NAMES = [
+      'Nguyễn Văn An', 'Trần Thị Bích', 'Lê Hoàng Cường', 'Phạm Thu Dung',
+      'Hoàng Văn Em', 'Vũ Thị Phương', 'Đặng Quốc Huy', 'Bùi Mai Hương',
+      'Đỗ Minh Khang', 'Hồ Ngọc Lan', 'Ngô Quang Minh', 'Dương Thảo Nhi',
+      'Lý Khánh Phong', 'Trịnh Bảo Quyên', 'Mai Thành Sơn', 'Cao Thị Thảo',
+      'Đinh Quốc Uy', 'Lương Tố Uyên', 'Phan Gia Vinh', 'Tạ Minh Xuân'
+    ];
+
+    const DUCK_COLORS = [
+      { fill: '#facc15', border: '#ca8a04', name: 'Vàng Nắng' },
+      { fill: '#38bdf8', border: '#0284c7', name: 'Xanh Biển' },
+      { fill: '#4ade80', border: '#16a34a', name: 'Xanh Lá' },
+      { fill: '#f472b6', border: '#db2777', name: 'Hồng Phấn' },
+      { fill: '#fb923c', border: '#ea580c', name: 'Cam Lửa' },
+      { fill: '#c084fc', border: '#9333ea', name: 'Tím Hoa' },
+      { fill: '#2dd4bf', border: '#0d9488', name: 'Ngọc Bích' },
+      { fill: '#f87171', border: '#dc2626', name: 'Đỏ Tươi' },
+      { fill: '#fbbf24', border: '#d97706', name: 'Hổ Phách' },
+      { fill: '#a3e635', border: '#65a30d', name: 'Vàng Chanh' }
+    ];
+
+    /* =========================================================
+       2. STATE VARIABLES
+       ========================================================= */
+    let students = [];
+    let config = {
+      durationSeconds: 10,
+      eliminateWinner: true,
+      soundEnabled: true
+    };
+    let calledHistory = [];
+    let racers = [];
+    let raceStatus = 'idle'; // 'idle' | 'countdown' | 'racing' | 'finished'
+    let currentWinner = null;
+    let animationFrameId = null;
+    let raceStartTime = 0;
+    let activeAudio = null;
+
+    /* =========================================================
+       3. SOUND SYNTHESIZER (WEB AUDIO API - ZERO EXTERNAL ASSETS)
+       ========================================================= */
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx && typeof window !== 'undefined') {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    const sound = {
+      playClick() {
+        if (!config.soundEnabled) return;
+        try {
+          const ctx = getAudioContext();
+          if (!ctx) return;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.setValueAtTime(600, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.05);
+          gain.gain.setValueAtTime(0.1, ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.05);
+        } catch {}
+      },
+      playCountdownBeep(isFinal = false) {
+        if (!config.soundEnabled) return;
+        try {
+          const ctx = getAudioContext();
+          if (!ctx) return;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          const freq = isFinal ? 880 : 440;
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + (isFinal ? 0.35 : 0.15));
+          osc.start();
+          osc.stop(ctx.currentTime + (isFinal ? 0.35 : 0.15));
+        } catch {}
+      },
+      playQuack() {
+        if (!config.soundEnabled) return;
+        try {
+          const ctx = getAudioContext();
+          if (!ctx) return;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.setValueAtTime(340, ctx.currentTime);
+          osc.frequency.linearRampToValueAtTime(220, ctx.currentTime + 0.18);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.22);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.22);
+        } catch {}
+      },
+      playVictory() {
+        if (!config.soundEnabled) return;
+        try {
+          const ctx = getAudioContext();
+          if (!ctx) return;
+          const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+          notes.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.1);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + idx * 0.1 + 0.4);
+            osc.start(ctx.currentTime + idx * 0.1);
+            osc.stop(ctx.currentTime + idx * 0.1 + 0.4);
+          });
+        } catch {}
+      }
+    };
+
+    /* =========================================================
+       4. VIETNAMESE VOICE ANNOUNCER (HD TTS + MALE PITCH TUNING)
+       ========================================================= */
+    function unlockAudio() {
+      getAudioContext();
+      if (typeof window !== 'undefined') {
+        try {
+          const silent = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+          silent.volume = 0.01;
+          silent.play().then(() => silent.pause()).catch(() => {});
+        } catch {}
+      }
+    }
+
+    function stopSpeaking() {
+      if (activeAudio) {
+        try {
+          activeAudio.pause();
+          activeAudio.currentTime = 0;
+          activeAudio.src = '';
+        } catch {}
+        activeAudio = null;
+      }
+      if ('speechSynthesis' in window) {
+        try { window.speechSynthesis.cancel(); } catch {}
+      }
+    }
+
+    function speakVietnameseMale(fullName, callbacks) {
+      stopSpeaking();
+      unlockAudio();
+
+      const textToSpeak = `Xin chúc mừng em ${fullName}! Đã được gọi tên!`;
+      const audioUrls = [
+        `/api/tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(textToSpeak)}`,
+        `https://translate.googleapis.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(textToSpeak)}`,
+        `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(textToSpeak)}`
+      ];
+
+      let urlIdx = 0;
+      let ended = false;
+      const finish = () => {
+        if (!ended) {
+          ended = true;
+          activeAudio = null;
+          if (callbacks && callbacks.onEnd) callbacks.onEnd();
+        }
+      };
+
+      const tryPlay = (index) => {
+        if (index >= audioUrls.length) {
+          // Fallback to SpeechSynthesis
+          speakWithSpeechSynthesis(textToSpeak, callbacks);
+          return;
+        }
+
+        try {
+          const audio = new Audio();
+          activeAudio = audio;
+          try {
+            audio.preservesPitch = false;
+            audio.mozPreservesPitch = false;
+            audio.webkitPreservesPitch = false;
+            audio.playbackRate = 0.88; // Lower playback rate gives deeper masculine voice
+          } catch {}
+
+          audio.volume = 1.0;
+          audio.src = audioUrls[index];
+
+          audio.onplay = () => {
+            if (callbacks && callbacks.onStart) callbacks.onStart();
+          };
+          audio.onended = finish;
+          audio.onerror = () => tryPlay(index + 1);
+
+          const p = audio.play();
+          if (p !== undefined) {
+            p.catch(() => tryPlay(index + 1));
+          }
+        } catch {
+          tryPlay(index + 1);
+        }
+      };
+
+      tryPlay(urlIdx);
+    }
+
+    function speakWithSpeechSynthesis(text, callbacks) {
+      if (!('speechSynthesis' in window)) {
+        if (callbacks && callbacks.onEnd) callbacks.onEnd();
+        return;
+      }
+      try {
+        const voices = window.speechSynthesis.getVoices();
+        const viVoice = voices.find(v => {
+          const l = (v.lang || '').toLowerCase();
+          return l.startsWith('vi') || l.includes('viet');
+        });
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        if (viVoice) utterance.voice = viVoice;
+        utterance.lang = 'vi-VN';
+        utterance.pitch = 0.85; // resonant male tone
+        utterance.rate = 0.92;
+
+        utterance.onstart = () => { if (callbacks && callbacks.onStart) callbacks.onStart(); };
+        utterance.onend = () => { if (callbacks && callbacks.onEnd) callbacks.onEnd(); };
+        utterance.onerror = () => { if (callbacks && callbacks.onEnd) callbacks.onEnd(); };
+
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        if (callbacks && callbacks.onEnd) callbacks.onEnd();
+      }
+    }
+
+    /* =========================================================
+       5. DATA STORAGE & INITIALIZATION
+       ========================================================= */
+    function loadData() {
+      // Load students
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_STUDENTS);
+        if (raw !== null) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            students = parsed;
+          }
+        } else {
+          students = createInitialStudents();
+        }
+      } catch {
+        students = createInitialStudents();
+      }
+
+      // Load config
+      try {
+        const rawCfg = localStorage.getItem(STORAGE_KEY_CONFIG);
+        if (rawCfg) {
+          config = Object.assign(config, JSON.parse(rawCfg));
+        }
+      } catch {}
+
+      // Load history
+      try {
+        const rawHist = localStorage.getItem(STORAGE_KEY_HISTORY);
+        if (rawHist) {
+          calledHistory = JSON.parse(rawHist);
+        }
+      } catch {}
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(students));
+        localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(config));
+        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(calledHistory));
+      } catch {}
+    }
+
+    function createInitialStudents() {
+      return SAMPLE_NAMES.map((name, index) => ({
+        id: 'std-' + (index + 1) + '-' + Math.random().toString(36).substring(2, 6),
+        name,
+        active: true,
+        calledCount: 0
+      }));
+    }
+
+    /* =========================================================
+       6. DUCK SVG GENERATOR
+       ========================================================= */
+    function renderDuckSvg(colorHex = '#facc15', size = 44) {
+      return `
+        <svg width="${size}" height="${size}" viewBox="0 0 100 100" class="duck-swimming drop-shadow-md">
+          <!-- Water ripple -->
+          <ellipse cx="50" cy="78" rx="38" ry="10" fill="#ffffff" opacity="0.3" class="water-ripple" />
+          <ellipse cx="50" cy="76" rx="32" ry="8" fill="#38bdf8" opacity="0.4" />
+          <!-- Duck Tail -->
+          <path d="M 18 55 C 10 40 18 32 30 45 Z" fill="${colorHex}" stroke="#0f172a" stroke-width="3" />
+          <!-- Duck Body -->
+          <ellipse cx="52" cy="62" rx="32" ry="20" fill="${colorHex}" stroke="#0f172a" stroke-width="3.5" />
+          <!-- Wing -->
+          <path d="M 40 60 C 42 50 62 50 56 68 C 48 70 42 66 40 60 Z" fill="#ffffff" opacity="0.25" stroke="#0f172a" stroke-width="2.5" />
+          <!-- Neck & Head -->
+          <circle cx="70" cy="38" r="18" fill="${colorHex}" stroke="#0f172a" stroke-width="3.5" />
+          <!-- Cute Eye -->
+          <circle cx="76" cy="34" r="5" fill="#0f172a" />
+          <circle cx="78" cy="32" r="2" fill="#ffffff" />
+          <!-- Orange Beak -->
+          <path d="M 84 37 C 98 39 96 46 84 48 Z" fill="#fb923c" stroke="#0f172a" stroke-width="2.5" />
+          <!-- Cute Cheek Blush -->
+          <ellipse cx="71" cy="42" rx="3.5" ry="2" fill="#f43f5e" opacity="0.5" />
+        </svg>
+      `;
+    }
+
+    /* =========================================================
+       7. UI RENDERING
+       ========================================================= */
+    function renderUI() {
+      renderTrack();
+      renderStudentsList();
+      renderHistoryList();
+      updateStats();
+      syncConfigUI();
+    }
+
+    function updateStats() {
+      const activeCount = students.filter(s => s.active).length;
+      document.getElementById('stat-active-count').textContent = activeCount;
+      document.getElementById('stat-total-count').textContent = students.length;
+      document.getElementById('footer-count').textContent = `Tổng cộng: ${students.length} học sinh`;
+      document.getElementById('stat-racers-count').textContent = racers.length;
+      document.getElementById('stat-duration').textContent = `${config.durationSeconds}s`;
+      document.getElementById('stat-elim-mode').textContent = config.eliminateWinner ? 'Tự động loại sau khi thắng' : 'Giữ nguyên danh sách';
+
+      // Restore button
+      const inactiveCount = students.length - activeCount;
+      const btnRestore = document.getElementById('btn-restore-all');
+      if (inactiveCount > 0) {
+        btnRestore.classList.remove('hidden');
+        document.getElementById('restore-count').textContent = inactiveCount;
+      } else {
+        btnRestore.classList.add('hidden');
+      }
+
+      // Zero students alert
+      const emptyAlert = document.getElementById('empty-alert');
+      if (activeCount === 0) {
+        emptyAlert.classList.remove('hidden');
+        document.getElementById('empty-alert-text').textContent = students.length === 0 
+          ? 'Danh sách học sinh đang trống. Hãy thêm học sinh hoặc dán danh sách ở bên dưới!'
+          : 'Tất cả học sinh đã được gọi hoặc chưa có em nào được kích hoạt đua.';
+      } else {
+        emptyAlert.classList.add('hidden');
+      }
+    }
+
+    function renderStudentsList() {
+      const listEl = document.getElementById('students-list');
+      const search = (document.getElementById('input-search-student').value || '').toLowerCase().trim();
+      const filtered = students.filter(s => s.name.toLowerCase().includes(search));
+
+      if (filtered.length === 0) {
+        if (students.length === 0) {
+          listEl.innerHTML = `
+            <div class="py-8 px-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center gap-2">
+              <span class="text-3xl">👥</span>
+              <p class="font-semibold text-slate-300 text-sm">Danh sách học sinh đang trống</p>
+              <p class="text-slate-500 text-xs">Thầy/cô có thể dán danh sách từ Excel/Zalo hoặc tải lại 20 học sinh mẫu</p>
+              <div class="flex items-center gap-2 pt-2">
+                <button type="button" onclick="openBulkModal()" class="px-3 py-1.5 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-semibold cursor-pointer">📋 Dán danh sách ngay</button>
+                <button type="button" onclick="resetToDefaultSamples()" class="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-semibold cursor-pointer">🔄 Tải 20 em mẫu</button>
+              </div>
+            </div>
+          `;
+        } else {
+          listEl.innerHTML = `
+            <div class="py-6 text-center text-xs text-slate-500 italic">
+              Không tìm thấy học sinh phù hợp với từ khóa "${search}"
+            </div>
+          `;
+        }
+        return;
+      }
+
+      listEl.innerHTML = filtered.map((s, idx) => `
+        <div class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition border ${
+          s.active ? 'bg-slate-800/60 border-slate-700/60 text-slate-200' : 'bg-slate-950/60 border-rose-950/40 text-slate-500 line-through opacity-70'
+        }">
+          <div class="flex items-center gap-2.5 truncate">
+            <span class="text-[10px] font-mono text-slate-400 w-5">#${idx + 1}</span>
+            <button type="button" onclick="toggleStudentActive('${s.id}')" class="cursor-pointer text-sm">
+              ${s.active ? '<span class="text-emerald-400">✓</span>' : '<span class="text-rose-500">✕</span>'}
+            </button>
+            <span class="font-medium truncate">${s.name}</span>
+            ${s.calledCount > 0 ? `<span class="px-1.5 py-0.2 rounded text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">Đã gọi ${s.calledCount} lần</span>` : ''}
+          </div>
+          <button type="button" onclick="removeSingleStudent('${s.id}')" class="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer ml-2" title="Xóa học sinh này">
+            🗑️
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function renderTrack() {
+      const container = document.getElementById('lanes-container');
+      if (racers.length === 0) {
+        setupRacers();
+      }
+
+      container.innerHTML = racers.map((racer, index) => {
+        const duckColor = DUCK_COLORS[index % DUCK_COLORS.length];
+        return `
+          <div class="relative flex items-center h-14 w-full px-2">
+            <!-- Lane number indicator -->
+            <div class="absolute left-2 w-8 text-center text-[11px] font-black text-white/70 font-mono z-0">
+              #${index + 1}
+            </div>
+
+            <!-- Swimming Duck Racer Object -->
+            <div id="duck-racer-${racer.id}" class="absolute top-1/2 -translate-y-1/2 flex items-center transition-transform duration-75 z-20 pointer-events-none" style="left: ${racer.progress}%;">
+              <div class="relative flex items-center">
+                <!-- Duck SVG -->
+                ${renderDuckSvg(duckColor.fill, 46)}
+                
+                <!-- Name Pill on Duck -->
+                <div class="ml-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-slate-950 bg-white/95 border border-slate-900/20 shadow-md whitespace-nowrap select-none backdrop-blur-xs">
+                  ${racer.name}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderHistoryList() {
+      const el = document.getElementById('history-list');
+      if (calledHistory.length === 0) {
+        el.innerHTML = '<p class="text-slate-500 text-center py-4 text-xs italic">Chưa có học sinh nào được gọi</p>';
+        return;
+      }
+      el.innerHTML = calledHistory.slice(0, 15).map((h, i) => `
+        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="text-amber-400 font-bold">#${i + 1}</span>
+            <span class="font-semibold text-slate-200">${h.name}</span>
+          </div>
+          <span class="text-[10px] text-slate-500">${h.time}</span>
+        </div>
+      `).join('');
+    }
+
+    function syncConfigUI() {
+      document.querySelectorAll('.btn-duration').forEach(btn => {
+        const sec = parseInt(btn.dataset.sec, 10);
+        if (sec === config.durationSeconds) {
+          btn.className = 'btn-duration px-2 py-1.5 rounded-xl text-xs font-bold border border-amber-400 bg-amber-400/20 text-amber-300 cursor-pointer';
+        } else {
+          btn.className = 'btn-duration px-2 py-1.5 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-300 cursor-pointer';
+        }
+      });
+      document.getElementById('check-elimination-mode').checked = config.eliminateWinner;
+      document.getElementById('check-sound-enabled').checked = config.soundEnabled;
+      document.getElementById('sound-icon').textContent = config.soundEnabled ? '🔊' : '🔇';
+    }
+
+    function setupRacers() {
+      const activeStudents = students.filter(s => s.active);
+      racers = activeStudents.map((s, idx) => ({
+        id: s.id,
+        name: s.name,
+        progress: 8, // starting line progress %
+        speed: 1.0,
+        burstTimer: Math.random() * 2
+      }));
+    }
+
+    /* =========================================================
+       8. RACE SIMULATION ENGINE
+       ========================================================= */
+    function handleStartRace() {
+      unlockAudio();
+      if (raceStatus === 'racing' || raceStatus === 'countdown') return;
+
+      const activeStudents = students.filter(s => s.active);
+      if (activeStudents.length === 0) {
+        sound.playClick();
+        showToast('⚠️ Danh sách học sinh đang trống hoặc chưa chọn em nào để đua!', 'warning');
+        return;
+      }
+
+      setupRacers();
+      renderTrack();
+      raceStatus = 'countdown';
+      document.getElementById('track-status-text').textContent = 'Chuẩn bị xuất phát...';
+
+      // 3, 2, 1 Countdown
+      const overlay = document.getElementById('countdown-overlay');
+      const countNum = document.getElementById('countdown-number');
+      overlay.classList.remove('hidden');
+
+      let count = 3;
+      countNum.textContent = count;
+      sound.playCountdownBeep(false);
+
+      const countInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countNum.textContent = count;
+          sound.playCountdownBeep(false);
+        } else if (count === 0) {
+          countNum.textContent = 'GO!';
+          sound.playCountdownBeep(true);
+        } else {
+          clearInterval(countInterval);
+          overlay.classList.add('hidden');
+          startRaceAnimation();
+        }
+      }, 750);
+    }
+
+    function startRaceAnimation() {
+      raceStatus = 'racing';
+      raceStartTime = performance.now();
+      document.getElementById('track-status-text').textContent = 'Đua gay cấn! Ai sẽ là người về đích đầu tiên?';
+      sound.playQuack();
+
+      const totalDurationMs = config.durationSeconds * 1000;
+      const targetFinishProgress = 86; // Finish line right border
+
+      function loop(currentTime) {
+        const elapsed = currentTime - raceStartTime;
+        const normalizedTime = Math.min(1, elapsed / totalDurationMs);
+
+        // Physics update for each duck racer
+        racers.forEach((racer) => {
+          // Dynamic speed variations & bursts
+          const randomFactor = 0.85 + Math.random() * 0.3;
+          const burst = Math.sin((elapsed / 1000) * 3 + racer.progress) > 0.6 ? 1.4 : 1.0;
+          
+          const baseProgress = 8 + (targetFinishProgress - 8) * Math.pow(normalizedTime, 1.1);
+          racer.progress = Math.min(targetFinishProgress, baseProgress * randomFactor * burst);
+
+          // Update DOM element position directly for 60fps smoothness
+          const el = document.getElementById(`duck-racer-${racer.id}`);
+          if (el) {
+            el.style.left = `${racer.progress}%`;
+          }
+        });
+
+        if (normalizedTime < 1) {
+          animationFrameId = requestAnimationFrame(loop);
+        } else {
+          // Finish Race
+          finishRace();
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(loop);
+    }
+
+    function finishRace() {
+      raceStatus = 'finished';
+      sound.playVictory();
+
+      // Pick winner based on max progress, or random from active
+      let winnerRacer = racers[0];
+      racers.forEach(r => {
+        if (r.progress > winnerRacer.progress) winnerRacer = r;
+      });
+
+      // Tie-breaker: random active
+      if (!winnerRacer) {
+        const active = students.filter(s => s.active);
+        winnerRacer = active[Math.floor(Math.random() * active.length)];
+      }
+
+      // Push winner firmly across the finish line
+      const winnerEl = document.getElementById(`duck-racer-${winnerRacer.id}`);
+      if (winnerEl) winnerEl.style.left = '88%';
+
+      celebrateWinner(winnerRacer);
+    }
+
+    /* Quick Pick Instant Function */
+    function handleQuickPick() {
+      unlockAudio();
+      const active = students.filter(s => s.active);
+      if (active.length === 0) {
+        sound.playClick();
+        showToast('⚠️ Danh sách học sinh đang trống hoặc chưa chọn em nào!', 'warning');
+        return;
+      }
+      sound.playClick();
+      const chosen = active[Math.floor(Math.random() * active.length)];
+      celebrateWinner({ id: chosen.id, name: chosen.name });
+    }
+
+    function celebrateWinner(winner) {
+      currentWinner = winner;
+      document.getElementById('track-status-text').textContent = `🏆 ${winner.name} đã chiến thắng!`;
+
+      // Update student calledCount
+      const std = students.find(s => s.id === winner.id || s.name === winner.name);
+      if (std) {
+        std.calledCount = (std.calledCount || 0) + 1;
+        if (config.eliminateWinner) {
+          std.active = false;
+        }
+      }
+
+      // Add to history
+      const now = new Date();
+      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      calledHistory.unshift({ name: winner.name, time: timeStr });
+      saveData();
+      updateStats();
+      renderStudentsList();
+      renderHistoryList();
+
+      // Show in-track banner
+      const banner = document.getElementById('track-winner-banner');
+      banner.classList.remove('hidden');
+      document.getElementById('banner-winner-name').textContent = winner.name;
+
+      // Show Winner Modal
+      openWinnerModal(winner);
+
+      // Fire confetti
+      triggerConfetti();
+
+      // Auto-speak Vietnamese Male voice
+      speakVietnameseMale(winner.name);
+    }
+
+    function triggerConfetti() {
+      if (typeof confetti === 'function') {
+        try {
+          confetti({
+            particleCount: 80,
+            spread: 90,
+            origin: { y: 0.6 }
+          });
+          setTimeout(() => {
+            confetti({
+              particleCount: 50,
+              angle: 60,
+              spread: 60,
+              origin: { x: 0 }
+            });
+            confetti({
+              particleCount: 50,
+              angle: 120,
+              spread: 60,
+              origin: { x: 1 }
+            });
+          }, 250);
+        } catch {}
+      }
+    }
+
+    function openWinnerModal(winner) {
+      const modal = document.getElementById('modal-winner');
+      document.getElementById('winner-full-name').textContent = winner.name;
+      modal.classList.remove('hidden');
+    }
+
+    function closeWinnerModal() {
+      document.getElementById('modal-winner').classList.add('hidden');
+      stopSpeaking();
+    }
+
+    function speakCurrentWinner() {
+      if (!currentWinner) return;
+      const btnText = document.getElementById('btn-winner-speak-text');
+      speakVietnameseMale(currentWinner.name, {
+        onStart: () => { if (btnText) btnText.textContent = 'ĐANG ĐỌC TÊN...'; },
+        onEnd: () => { if (btnText) btnText.textContent = 'BẤM ĐỂ NGHE ĐỌC TÊN (GIỌNG TIẾNG VIỆT)'; }
+      });
+    }
+
+    function eliminateCurrentWinner() {
+      if (!currentWinner) return;
+      const std = students.find(s => s.id === currentWinner.id || s.name === currentWinner.name);
+      if (std) {
+        std.active = false;
+        saveData();
+        renderUI();
+        showToast(`Đã loại ${std.name} khỏi lượt đua tiếp theo.`);
+      }
+      closeWinnerModal();
+    }
+
+    function startNewRaceFromModal() {
+      closeWinnerModal();
+      handleStartRace();
+    }
+
+    /* =========================================================
+       9. STUDENT MANAGEMENT ACTIONS
+       ========================================================= */
+    function addSingleStudent(name) {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      students.unshift({
+        id: 'std-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+        name: trimmed,
+        active: true,
+        calledCount: 0
+      });
+      saveData();
+      renderUI();
+      showToast(`Đã thêm học sinh "${trimmed}" vào danh sách.`);
+    }
+
+    function toggleStudentActive(id) {
+      sound.playClick();
+      const s = students.find(item => item.id === id);
+      if (s) {
+        s.active = !s.active;
+        saveData();
+        renderUI();
+      }
+    }
+
+    function removeSingleStudent(id) {
+      sound.playClick();
+      const s = students.find(item => item.id === id);
+      students = students.filter(item => item.id !== id);
+      saveData();
+      renderUI();
+      if (s) showToast(`Đã xóa học sinh "${s.name}".`);
+    }
+
+    function restoreAllStudents() {
+      sound.playClick();
+      students.forEach(s => s.active = true);
+      saveData();
+      renderUI();
+      showToast('Đã khôi phục toàn bộ học sinh tham gia đua.');
+    }
+
+    /* Clear All Workflow (No window.confirm) */
+    function triggerClearAll() {
+      sound.playClick();
+      document.getElementById('confirm-reset-box').classList.add('hidden');
+      document.getElementById('confirm-clear-box').classList.remove('hidden');
+    }
+
+    function cancelClearAll() {
+      sound.playClick();
+      document.getElementById('confirm-clear-box').classList.add('hidden');
+    }
+
+    function confirmClearAll() {
+      sound.playClick();
+      students = [];
+      racers = [];
+      currentWinner = null;
+      document.getElementById('track-winner-banner').classList.add('hidden');
+      document.getElementById('confirm-clear-box').classList.add('hidden');
+      saveData();
+      renderUI();
+      showToast('🗑️ Đã xóa toàn bộ danh sách học sinh.');
+    }
+
+    /* Reset to Samples Workflow */
+    function triggerResetDefault() {
+      sound.playClick();
+      document.getElementById('confirm-clear-box').classList.add('hidden');
+      document.getElementById('confirm-reset-box').classList.remove('hidden');
+    }
+
+    function cancelResetDefault() {
+      sound.playClick();
+      document.getElementById('confirm-reset-box').classList.add('hidden');
+    }
+
+    function confirmResetDefault() {
+      sound.playClick();
+      students = createInitialStudents();
+      racers = [];
+      currentWinner = null;
+      document.getElementById('track-winner-banner').classList.add('hidden');
+      document.getElementById('confirm-reset-box').classList.add('hidden');
+      saveData();
+      renderUI();
+      showToast('✅ Đã tải lại 20 học sinh lớp mẫu mặc định.');
+    }
+
+    function resetToDefaultSamples() {
+      confirmResetDefault();
+    }
+
+    /* Bulk Import */
+    function openBulkModal() {
+      sound.playClick();
+      document.getElementById('modal-bulk-import').classList.remove('hidden');
+      document.getElementById('textarea-bulk-names').focus();
+    }
+
+    function closeBulkModal() {
+      document.getElementById('modal-bulk-import').classList.add('hidden');
+    }
+
+    function submitBulkImport() {
+      const text = document.getElementById('textarea-bulk-names').value;
+      if (!text.trim()) return;
+
+      const rawNames = text
+        .split(/[\n,;]+/)
+        .map(n => n.trim().replace(/^[\d+.\-)\s]+/, '')) // Clean numbered prefix (1. 2))
+        .filter(n => n.length > 0);
+
+      if (rawNames.length > 0) {
+        const newStudents = rawNames.map((name, i) => ({
+          id: 'std-' + (Date.now() + i) + '-' + Math.random().toString(36).substring(2, 6),
+          name,
+          active: true,
+          calledCount: 0
+        }));
+        students = [...newStudents, ...students];
+        saveData();
+        renderUI();
+        document.getElementById('textarea-bulk-names').value = '';
+        closeBulkModal();
+        showToast(`Đã nhập thành công ${rawNames.length} học sinh!`);
+      }
+    }
+
+    /* =========================================================
+       10. CONFIGURATION & HELPERS
+       ========================================================= */
+    function setRaceDuration(sec) {
+      sound.playClick();
+      config.durationSeconds = sec;
+      saveData();
+      renderUI();
+    }
+
+    function showToast(msg, type = 'info') {
+      const banner = document.getElementById('toast-banner');
+      const textEl = document.getElementById('toast-text');
+      textEl.textContent = msg;
+      banner.classList.remove('hidden');
+      setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 4000);
+    }
+
+    function hideToast() {
+      document.getElementById('toast-banner').classList.add('hidden');
+    }
+
+    /* =========================================================
+       11. EVENT LISTENERS INITIALIZATION
+       ========================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      renderUI();
+
+      // Top Sound Toggle
+      document.getElementById('btn-toggle-sound').addEventListener('click', () => {
+        config.soundEnabled = !config.soundEnabled;
+        sound.playClick();
+        saveData();
+        syncConfigUI();
+      });
+
+      // Voice Test
+      document.getElementById('btn-test-voice').addEventListener('click', () => {
+        unlockAudio();
+        speakVietnameseMale('Nguyễn Văn An');
+      });
+
+      // Main Buttons
+      document.getElementById('btn-start-race').addEventListener('click', handleStartRace);
+      document.getElementById('btn-quick-pick').addEventListener('click', handleQuickPick);
+      document.getElementById('btn-reset-track').addEventListener('click', () => {
+        sound.playClick();
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        raceStatus = 'idle';
+        setupRacers();
+        renderTrack();
+        document.getElementById('track-status-text').textContent = 'Đã đặt lại đường đua.';
+      });
+
+      // Add student form
+      document.getElementById('form-add-student').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('input-student-name');
+        addSingleStudent(input.value);
+        input.value = '';
+      });
+
+      // Search student input
+      document.getElementById('input-search-student').addEventListener('input', () => {
+        renderStudentsList();
+      });
+
+      // Bulk import buttons
+      document.getElementById('btn-open-bulk').addEventListener('click', openBulkModal);
+      document.getElementById('btn-restore-all').addEventListener('click', restoreAllStudents);
+      document.getElementById('btn-trigger-clear-all').addEventListener('click', triggerClearAll);
+      document.getElementById('btn-trigger-reset').addEventListener('click', triggerResetDefault);
+      document.getElementById('btn-restore-samples-banner').addEventListener('click', resetToDefaultSamples);
+
+      // In-Track Banner Actions
+      document.getElementById('btn-banner-speak').addEventListener('click', () => {
+        if (currentWinner) speakVietnameseMale(currentWinner.name);
+      });
+      document.getElementById('btn-banner-view-modal').addEventListener('click', () => {
+        if (currentWinner) openWinnerModal(currentWinner);
+      });
+
+      // Settings checkboxes
+      document.getElementById('check-elimination-mode').addEventListener('change', (e) => {
+        config.eliminateWinner = e.target.checked;
+        saveData();
+        renderUI();
+      });
+      document.getElementById('check-sound-enabled').addEventListener('change', (e) => {
+        config.soundEnabled = e.target.checked;
+        saveData();
+        syncConfigUI();
+      });
+
+      // History clear
+      document.getElementById('btn-clear-history').addEventListener('click', () => {
+        sound.playClick();
+        calledHistory = [];
+        saveData();
+        renderHistoryList();
+      });
+
+      // Unlock audio on first touch/click
+      window.addEventListener('click', unlockAudio, { once: true });
+      window.addEventListener('touchstart', unlockAudio, { once: true });
+    });
+  </script>
+</body>
+</html>
